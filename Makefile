@@ -8,11 +8,4 @@ build:
 	docker pull mysql:5.7
 run:
 	python start.py
-secure:
-	iptables -I INPUT -p tcp -s IPACHANGER --dport 2375 -j ACCEPT
-	iptables -I INPUT -p tcp -s 0.0.0.0/0 --dport 2375 -j DROP
-stop:
-	./killswarm.sh
 
-superStop:
-	./killswarm.sh 1
