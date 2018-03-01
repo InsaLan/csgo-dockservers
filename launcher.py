@@ -18,7 +18,7 @@ def create_network(servers, tls_config, netn):
             client.remove_network(nett)
         if(len(net) == 0):
             client.create_network(name=netn, driver='macvlan', options={'parent': s['interface']}, ipam=ipamm)
-        
+            
 def ebot_add_servers(servers, db_ip, net):
     containers = []
     csgo_containers = []
@@ -39,11 +39,11 @@ def ebot_add_servers(servers, db_ip, net):
         name = i.attrs['Name']
         data_server = ("{}:27015".format(ip), "notbanana", name, "{}:27020".format(ip))
         cursor.execute(add_server, data_server)
-    cnx.commit()
-    cursor.close()
-    cnx.close()
+        cnx.commit()
+        cursor.close()
+        cnx.close()
 
-def deploy(tlsconfig, nb_csgo, servers, net, ebotweb_ip, image):
+def deploy(tlsconfig, nb_csgo, servers, net, ebotweb_ip, image, topo):
     pwd = os.getcwd()
     ip = ipaddress.ip_address(ebotweb_ip)
     for y in range(0, len(servers)):
@@ -57,12 +57,12 @@ def deploy(tlsconfig, nb_csgo, servers, net, ebotweb_ip, image):
                     restart_policy={'Name': 'always'}
                 ),
                 environment={'CSGO_HOSTNAME': "csgo-server-{}".format(i),
-                                    'CSGO_PASSWORD': '',
-                                    'RCON_PASSWORD': 'notbanana',
-                                    'STEAM_ACCOUNT_TOKEN': tokens[i],
-                                    'HOST_PORT': '27015',
-                                    'CLIENT_PORT': '27005',
-                                    'STV_PORT': '27020'},
+                             'CSGO_PASSWORD': '',
+                             'RCON_PASSWORD': 'notbanana',
+                             'STEAM_ACCOUNT_TOKEN': tokens[i] if len(tokens) > i else  '',
+                             'HOST_PORT': '27015',
+                             'CLIENT_PORT': '27005',
+                             'STV_PORT': '27020'},
                 networking_config={
                     'EndpointsConfig': {
                         net: {
@@ -74,8 +74,9 @@ def deploy(tlsconfig, nb_csgo, servers, net, ebotweb_ip, image):
                 },
                 name="csgo-servers-{}".format(i))
             client.start(container)
+            topo.write("csgo-servers-{};{};{}\n".format(i, str(ip), client.base_url))
 
-def launch(client, nb_csgo, servers, db_ip, ebot_ip, ebotweb_ip, net):
+def launch(client, nb_csgo, servers, db_ip, ebot_ip, ebotweb_ip, net, topo):
     db_container = client.create_container(
         'mysql:5.7', detach=True, volumes=['/var/lib/mysql'],
         host_config=client.create_host_config(restart_policy={'Name': 'always'},
@@ -93,13 +94,14 @@ def launch(client, nb_csgo, servers, db_ip, ebot_ip, ebotweb_ip, net):
             }
         },
         name='db_container')
+    topo.write('db_container;{};{}\n'.format(db_ip, client.base_url))
     
     ebot_container = client.create_container(
         'hsfactory/ebot', detach=True, volumes=['/ebot/logs', '/ebot/demos'],
         host_config=client.create_host_config(restart_policy={'Name': 'always'},
                                               extra_hosts={'mysql': db_ip},
                                               binds=['/opt/docker/ebot/logs:/ebot/logs',
-                                                       '/opt/docker/ebot/demo:/ebot/demos']),
+                                                     '/opt/docker/ebot/demo:/ebot/demos']),
         environment={'EXTERNAL_IP': ebot_ip, 'MYSQL_HOST': 'mysql',
                      'MYSQL_PORT': '3306', 'MYSQL_DB': 'ebotv3',
                      'MYSQL_USER': 'ebotv3', 'MYSQL_PASS': 'ebotv3',
@@ -117,13 +119,14 @@ def launch(client, nb_csgo, servers, db_ip, ebot_ip, ebotweb_ip, net):
             }
         },
         name='ebot_container')
+    topo.write('ebot_container;{};{}\n'.format(ebot_ip, client.base_url))
     
     ebotweb_container = client.create_container(
         'hsfactory/ebotweb', detach=True, volumes=['/ebot/logs', '/ebot/demos'],
         host_config=client.create_host_config(restart_policy={'Name': 'always'},
                                               extra_hosts={'mysql': db_ip, 'ebot': ebot_ip},
                                               binds=['/opt/docker/ebot/logs:/opt/ebot/logs',
-                                                       '/opt/docker/ebot/demo:/opt/ebot/demos']),
+                                                     '/opt/docker/ebot/demo:/opt/ebot/demos']),
         environment={'EBOT_IP': ebot_ip, 'EBOT_PORT': '12360',
                      'EBOT_ADMIN_USER': 'insalan', 'EBOT_ADMIN_PASS': 'nhurman',
                      'EBOT_ADMIN_MAIL': 'insalade@ebot', 'MYSQL_HOST': 'mysql',
@@ -142,6 +145,7 @@ def launch(client, nb_csgo, servers, db_ip, ebot_ip, ebotweb_ip, net):
             }
         },
         name='ebotweb_container')
+    topo.write('ebotweb_container;{};{}\n'.format(ebotweb_ip, client.base_url))
     
     client.start(db_container)
     time.sleep(10)

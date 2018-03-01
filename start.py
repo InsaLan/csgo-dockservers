@@ -46,9 +46,10 @@ if __name__ == '__main__':
     print("Making networks")
     create_network(servers, tls_config, net)
     print("Starting ebot containers")
-    launch(client, nb_csgo, servers, db_ip, ebot_ip, ebotweb_ip, net)
-    print("Deploying csgo servers")
-    deploy(tls_config, nb_csgo, servers, net, ebotweb_ip, image)
+    with open('topology.csv', 'w') as topo:
+        launch(client, nb_csgo, servers, db_ip, ebot_ip, ebotweb_ip, net, topo)
+        print("Deploying csgo servers")
+        deploy(tls_config, nb_csgo, servers, net, ebotweb_ip, image, topo)
     print("Waiting for db to start...")
     time.sleep(20)
     print("Inserting servers into ebot db")
