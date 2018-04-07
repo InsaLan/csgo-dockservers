@@ -5,7 +5,7 @@ from launcher import *
 if __name__ == '__main__':
     tls_config = docker.tls.TLSConfig(ca_cert='/root/.docker/ca.pem', client_cert=('/root/.docker/cert.pem', '/root/.docker/key.pem'))
     nb_csgo = 4
-    configinsalan = False
+    configinsalan = True
     net='vlan-bond0.101'
     image='csgoserver'
     if(not configinsalan):
@@ -21,22 +21,17 @@ if __name__ == '__main__':
         ebot_ip = '192.168.0.107'
         ebotweb_ip = '192.168.0.108'
     else:
-        client = docker.APIClient('tcp://172.16.1.9:2375', tls=tls_config)
+        client = docker.APIClient('tcp://172.16.1.3:2375', tls=tls_config)
         servers = [
-            {'ip': '172.16.1.10', 'interface': 'eth0.101',
+            {'ip': '172.16.1.3', 'interface': 'eth0',
              'pool': docker.types.IPAMPool(
-                 subnet='172.17.1.0/24',
-                 gateway='172.17.1.1'
+                 subnet='172.16.1.0/24',
+                 gateway='172.16.1.1'
              )},
-            {'ip': '172.16.1.9', 'interface': 'eth0.101',
+            {'ip': '172.16.1.4', 'interface': 'eth0',
              'pool': docker.types.IPAMPool(
-                 subnet='172.17.1.0/24',
-                 gateway='172.17.1.1'
-             )},
-            {'ip': '172.16.1.11', 'interface':  'bond0.101',
-             'pool' : docker.types.IPAMPool(
-                 subnet='172.17.1.0/24',
-                 gateway='172.17.1.1'
+                 subnet='172.16.1.0/24',
+                 gateway='172.16.1.1'
              )}
         ]
         db_ip = '172.17.1.176'
@@ -51,7 +46,7 @@ if __name__ == '__main__':
         print("Deploying csgo servers")
         deploy(tls_config, nb_csgo, servers, net, ebotweb_ip, image, topo)
     print("Waiting for db to start...")
-    time.sleep(20)
-    print("Inserting servers into ebot db")
-    ebot_add_servers(servers, db_ip, net)
+    #time.sleep(20)
+    #print("Inserting servers into ebot db")
+    #ebot_add_servers(servers, db_ip, net)
     

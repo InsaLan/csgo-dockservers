@@ -30,7 +30,10 @@ def ebot_add_servers(servers, db_ip, net):
         
     cnx = mysql.connector.connect(user='ebotv3', password='ebotv3', host=db_ip, database='ebotv3')
     cursor = cnx.cursor()
-    #cursor.execute("TRUNCATE TABLE servers")
+    try:
+        cursor.execute("TRUNCATE TABLE servers")
+    except:
+        print("table servers inexistante")
     add_server = ("INSERT INTO servers"
                   "(ip, rcon, hostname, tv_ip, created_at, updated_at)"
                   "values(%s,%s,%s,%s,'2017-12-17 00:00:00','2017-12-17 00:00:00')")
