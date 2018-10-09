@@ -5,9 +5,9 @@ from launcher import *
 if __name__ == '__main__':
     tls_config = docker.tls.TLSConfig(ca_cert='/root/.docker/ca.pem', client_cert=('/root/.docker/cert.pem', '/root/.docker/key.pem'))
     nb_csgo = 4
-    macvlan = True
+    macvlan = False
     image='csgoserver'
-    client = docker.APIClient('tcp://192.168.0.103:2375', tls=tls_config)
+    client = docker.APIClient('tcp://192.168.200.106:2375', tls=tls_config)
     
     print("Making networks")
     if(macvlan):
@@ -26,12 +26,12 @@ if __name__ == '__main__':
         create_macvlan_network(servers, tls_config, net)
     else:
         servers = [
-            {'ip': '192.168.0.103'}
+            {'ip': '192.168.200.106'}
         ]
         net = 'host'
-        db_ip = '192.168.0.103'
-        ebot_ip = '192.168.0.103'
-        ebotweb_ip = '192.168.0.103'
+        db_ip = '192.168.200.106'
+        ebot_ip = '192.168.200.106'
+        ebotweb_ip = '192.168.200.106'
     
     print("Starting ebot containers")
     with open('topology.csv', 'w') as topo:

@@ -3,6 +3,7 @@ import docker
 import mysql.connector
 import ipaddress
 import os
+import re
 from math import *
 
 tokens=[]#don't put any token for lan only connection
@@ -17,7 +18,7 @@ def create_macvlan_network(servers, tls_config, netn):
             client.remove_network(nett)
         if(len(net) == 0):
             client.create_network(name=netn, driver='macvlan', options={'parent': s['interface']}, ipam=ipamm)
-
+            
 def create_bridge_network(servers, tls_config, netn):
     for s in servers:
         client = docker.APIClient(base_url='tcp://{}:2375'.format(s['ip']), tls=tls_config)
@@ -28,7 +29,7 @@ def create_bridge_network(servers, tls_config, netn):
             client.remove_network(nett)
         if(len(net) == 0):
             client.create_network(name=netn, driver='bridge', ipam=ipamm)
-     
+            
 def ebot_add_servers(servers, db_ip, net):
     containers = []
     csgo_containers = []
@@ -48,14 +49,23 @@ def ebot_add_servers(servers, db_ip, net):
         add_server = ("INSERT INTO servers"
                       "(ip, rcon, hostname, tv_ip, created_at, updated_at)"
                       "values(%s,%s,%s,%s,'2017-12-17 00:00:00','2017-12-17 00:00:00')")
+        stvp = re.compile("STV_PORT")
+        hostp = re.compile("HOST_PORT")
+        ipp = re.compile("IP")
         for i in csgo_containers:
-            ip = i.attrs['NetworkSettings']['Networks'][net]['IPAddress']
+            for y in i.attrs['Config']['Env']:
+                if(stvp.search(y)):
+                    stvport = re.split("=", y)[1]
+                if(hostp.search(y)):
+                    hostport = re.split("=", y)[1]
+                if(ipp.search(y)):
+                    ip = re.split("=", y)[1]
             name = i.attrs['Name']
-            data_server = ("{}:27015".format(ip), "notbanana", name, "{}:27020".format(ip))
+            data_server = ("{}:{}".format(ip, hostport), "notbanana", name, "{}:{}".format(ip, stvport))
             cursor.execute(add_server, data_server)
             cnx.commit()
-            cursor.close()
-            cnx.close()
+        cursor.close()
+        cnx.close()
     except:
         print("insertion failed")
     
@@ -78,7 +88,8 @@ def deploy(tlsconfig, nb_csgo, servers, net, ebotweb_ip, image, topo):
                     restart_policy={'Name': 'always'},
                     network_mode= 'host' if net=='host' else None
                 ),
-                environment={'CSGO_HOSTNAME': "csgo-server-{}".format(i),
+                environment={ 'IP': "{}".format(servers[y]['ip']),
+                              'CSGO_HOSTNAME': "csgo-server-{}".format(i),
                              'CSGO_PASSWORD': '',
                              'RCON_PASSWORD': 'notbanana',
                              'STEAM_ACCOUNT_TOKEN': tokens[i] if len(tokens) > i else  '',
@@ -200,5 +211,3 @@ def launch(client, nb_csgo, servers, db_ip, ebot_ip, ebotweb_ip, net, topo):
     time.sleep(10)
     client.start(ebotweb_container)
 
-    
-    
