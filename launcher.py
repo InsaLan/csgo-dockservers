@@ -5,8 +5,7 @@ import ipaddress
 import os
 import re
 from math import *
-
-tokens=[]#don't put any token for lan only connection
+from key import *
 
 def create_macvlan_network(servers, tls_config, netn):
     for s in servers:
