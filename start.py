@@ -29,9 +29,9 @@ if __name__ == '__main__':
             {'ip': '172.16.1.3'}
         ]
         net = 'host'
-        db_ip = '172.16.1.3'
-        ebot_ip = '172.16.1.3'
-        ebotweb_ip = '172.16.1.3'
+        db_ip = "172.16.1.3"
+        ebot_ip = "172.16.1.3"
+        ebotweb_ip = "172.16.1.3"
     
     print("Starting ebot containers")
     with open('topology.csv', 'w') as topo:
