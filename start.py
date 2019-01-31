@@ -4,7 +4,7 @@ from launcher import *
 
 if __name__ == '__main__':
     tls_config = docker.tls.TLSConfig(ca_cert='/root/.docker/ca.pem', client_cert=('/root/.docker/cert.pem', '/root/.docker/key.pem'))
-    nb_csgo = 4
+    nb_csgo = 12
     macvlan = False
     image='csgoserver'
     client = docker.APIClient('tcp://172.16.1.3:2375', tls=tls_config)
@@ -26,7 +26,7 @@ if __name__ == '__main__':
         create_macvlan_network(servers, tls_config, net)
     else:
         servers = [
-            {'ip': '172.16.1.3'}
+            {'ip': '172.16.1.3', 'ip': '172.16.1.4'}
         ]
         net = 'host'
         db_ip = "172.16.1.3"

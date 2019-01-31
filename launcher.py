@@ -75,8 +75,11 @@ def deploy(tlsconfig, nb_csgo, servers, net, ebotweb_ip, image, topo):
     clientport = hostport + nb_csgo
     stvport = clientport + nb_csgo
     hostname = 'csgoinsalan'
+    nb_serv = len(servers) + 1
+    print(len(servers))
+    print(int(ceil(nb_csgo/len(servers))))
     for y in range(0, len(servers)):
-        for i in range(int(ceil(nb_csgo/len(servers)) * y), int(ceil(nb_csgo/len(servers)) * (y+1))):
+        for i in range(int(ceil(nb_csgo/nb_serv) * y), int(ceil(nb_csgo/nb_serv) * (y+1))):
             ip = ipaddress.ip_address(ip+1)
             tls_config = docker.tls.TLSConfig(ca_cert='/root/.docker/ca.pem', client_cert=('/root/.docker/cert.pem', '/root/.docker/key.pem'))
             client = docker.APIClient(base_url='tcp://{}:2375'.format(servers[y]['ip']), tls=tls_config)
