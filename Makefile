@@ -6,5 +6,5 @@ build:
 	docker pull hsfactory/ebotweb
 	docker pull mysql:5.7
 run:
-	python3 start.py
+	python3 main.py
 
