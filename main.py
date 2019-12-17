@@ -13,16 +13,14 @@ if __name__ == "__main__":
 
     print("Making networks")
     servers = [{"ip": "172.16.1.3"}, {"ip": "172.16.1.4"}, {"ip": "172.16.1.5"}]
-    db_ip = "172.16.1.3"
     ebot_ip = "172.16.1.3"
-    ebotweb_ip = "172.16.1.3"
 
     print("Starting ebot containers")
     with open("topology.csv", "w") as topo:
-        launch(client, db_ip, ebot_ip, ebotweb_ip, topo)
+        deploy_ebotserver(client, ebot_ip, topo)
         print("Deploying csgo servers")
-        deploy(nb_csgo, servers, ebotweb_ip, image, topo)
+        deploy_csgoserver(nb_csgo, servers, ebot_ip, image, topo)
     print("Waiting for db to start...")
     time.sleep(20)
     print("Inserting servers into ebot db")
-    ebot_add_servers(servers, db_ip)
+    register_server_ebot(servers, db_ip)
