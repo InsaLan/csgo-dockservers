@@ -8,40 +8,7 @@ from math import *
 from key import *
 
 
-def create_macvlan_network(servers, tls_config, netn):
-    for s in servers:
-        client = docker.APIClient(
-            base_url="tcp://{}:2375".format(s["ip"]), tls=tls_config
-        )
-        net = client.networks(filters={"name": netn})
-        ipamm = docker.types.IPAMConfig(pool_configs=[s["pool"]])
-        if len(net) > 0:
-            nett = net.pop()["Id"]
-            client.remove_network(nett)
-        if len(net) == 0:
-            client.create_network(
-                name=netn,
-                driver="macvlan",
-                options={"parent": s["interface"]},
-                ipam=ipamm,
-            )
-
-
-def create_bridge_network(servers, tls_config, netn):
-    for s in servers:
-        client = docker.APIClient(
-            base_url="tcp://{}:2375".format(s["ip"]), tls=tls_config
-        )
-        net = client.networks(filters={"name": netn})
-        ipamm = docker.types.IPAMConfig(pool_configs=[s["pool"]])
-        if len(net) > 0:
-            nett = net.pop()["Id"]
-            client.remove_network(nett)
-        if len(net) == 0:
-            client.create_network(name=netn, driver="bridge", ipam=ipamm)
-
-
-def ebot_add_servers(servers, db_ip, net):
+def ebot_add_servers(servers, db_ip):
     containers = []
     csgo_containers = []
     tls_config = docker.tls.TLSConfig(
@@ -97,7 +64,7 @@ def ebot_add_servers(servers, db_ip, net):
         print("insertion failed")
 
 
-def deploy(tlsconfig, nb_csgo, servers, net, ebotweb_ip, image, topo):
+def deploy(nb_csgo, servers, ebotweb_ip, image, topo):
     pwd = os.getcwd()
     ip = ipaddress.ip_address(ebotweb_ip)
     hostport = 27015
@@ -122,9 +89,9 @@ def deploy(tlsconfig, nb_csgo, servers, net, ebotweb_ip, image, topo):
                 detach=True,
                 hostname=hostname,
                 host_config=client.create_host_config(
-                    extra_hosts={hostname: servers[y]["ip"]} if net == "host" else {},
+                    extra_hosts={hostname: servers[y]["ip"]},
                     restart_policy={"Name": "always"},
-                    network_mode="host" if net == "host" else None,
+                    network_mode="host",
                 ),
                 environment={
                     "IP": "{}".format(servers[y]["ip"]),
@@ -132,14 +99,9 @@ def deploy(tlsconfig, nb_csgo, servers, net, ebotweb_ip, image, topo):
                     "CSGO_PASSWORD": "",
                     "RCON_PASSWORD": "notbanana",
                     "STEAM_ACCOUNT_TOKEN": tokens[i] if len(tokens) > i else "",
-                    "HOST_PORT": str(hostport + i) if net == "host" else "27015",
-                    "CLIENT_PORT": str(clientport + i) if net == "host" else "27005",
-                    "STV_PORT": str(stvport + i) if net == "host" else "27020",
-                },
-                networking_config=None
-                if net == "host"
-                else {
-                    "EndpointsConfig": {net: {"IPAMConfig": {"IPv4Address": str(ip)}}}
+                    "HOST_PORT": str(hostport + i),
+                    "CLIENT_PORT": str(clientport + i),
+                    "STV_PORT": str(stvport + i),
                 },
                 name="csgo-servers-{}".format(i),
             )
@@ -147,7 +109,7 @@ def deploy(tlsconfig, nb_csgo, servers, net, ebotweb_ip, image, topo):
             topo.write("csgo-servers-{};{};{}\n".format(i, str(ip), client.base_url))
 
 
-def launch(client, nb_csgo, servers, db_ip, ebot_ip, ebotweb_ip, net, topo):
+def launch(client, db_ip, ebot_ip, ebotweb_ip, topo):
     db_container = client.create_container(
         "mysql:5.7",
         detach=True,
@@ -158,7 +120,7 @@ def launch(client, nb_csgo, servers, db_ip, ebot_ip, ebotweb_ip, net, topo):
                     "/var/lib/mysql", "/opt/docker/ebot/mysql", type="bind"
                 )
             ],
-            network_mode="host" if net == "host" else None,
+            network_mode="host",
         ),
         environment={
             "MYSQL_DATABASE": "ebotv3",
@@ -167,9 +129,6 @@ def launch(client, nb_csgo, servers, db_ip, ebot_ip, ebotweb_ip, net, topo):
             "MYSQL_ROOT_PASSWORD": "nhurmanroot",
         },
         command="mysqld",
-        networking_config=None
-        if net == "host"
-        else {"EndpointsConfig": {net: {"IPAMConfig": {"IPv4Address": db_ip}}}},
         name="db_container",
     )
     topo.write("db_container;{};{}\n".format(db_ip, client.base_url))
@@ -185,7 +144,7 @@ def launch(client, nb_csgo, servers, db_ip, ebot_ip, ebotweb_ip, net, topo):
                 docker.types.Mount("/ebot/logs", "/opt/docker/ebot/logs", type="bind"),
                 docker.types.Mount("/ebot/demos", "/opt/docker/ebot/demo", type="bind"),
             ],
-            network_mode="host" if net == "host" else None,
+            network_mode="host",
         ),
         environment={
             "EXTERNAL_IP": ebot_ip,
@@ -203,9 +162,6 @@ def launch(client, nb_csgo, servers, db_ip, ebot_ip, ebotweb_ip, net, topo):
             "NODE_STARTUP_METHOD": "node",
             "TOORNAMENT_PLUGIN_KEY": "",
         },
-        networking_config=None
-        if net == "host"
-        else {"EndpointsConfig": {net: {"IPAMConfig": {"IPv4Address": ebot_ip}}}},
         name="ebot_container",
     )
     topo.write("ebot_container;{};{}\n".format(ebot_ip, client.base_url))
@@ -224,7 +180,7 @@ def launch(client, nb_csgo, servers, db_ip, ebot_ip, ebotweb_ip, net, topo):
                     "/opt/ebot/demos", "/opt/docker/ebot/demo", type="bind"
                 ),
             ],
-            network_mode="host" if net == "host" else None,
+            network_mode="host",
         ),
         environment={
             "EBOT_IP": ebot_ip,
@@ -244,9 +200,6 @@ def launch(client, nb_csgo, servers, db_ip, ebot_ip, ebotweb_ip, net, topo):
             "TOORNAMENT_PLUGIN_KEY": "",
             "TOORNAMENT_API_KEY": "",
         },
-        networking_config=None
-        if net == "host"
-        else {"EndpointsConfig": {net: {"IPAMConfig": {"IPv4Address": ebotweb_ip}}}},
         name="ebotweb_container",
     )
     topo.write("ebotweb_container;{};{}\n".format(ebotweb_ip, client.base_url))
