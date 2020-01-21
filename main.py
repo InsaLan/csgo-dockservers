@@ -23,4 +23,4 @@ if __name__ == "__main__":
     print("Waiting for db to start...")
     time.sleep(20)
     print("Inserting servers into ebot db")
-    register_server_ebot(servers, db_ip)
+    register_server_ebot(servers, ebot_ip)

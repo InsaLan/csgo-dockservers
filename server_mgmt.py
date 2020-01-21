@@ -72,7 +72,7 @@ def register_server_ebot(servers: List[Dict[str, str]], db_ip: str) -> None:
         print("insertion failed")
 
 
-def deploy_ebotserver(client, ebot_ip, topo : IO):
+def deploy_ebotserver(client, ebot_ip, topo: IO) -> None:
     """
     Deploy ebot (ebot web and his DB) on a physical server.
 
@@ -183,7 +183,9 @@ def deploy_ebotserver(client, ebot_ip, topo : IO):
     client.start(ebotweb_container)
 
 
-def deploy_csgoserver(nb_csgo: int, servers: List[Dict[str, str]], ebot_ip: str, image: str, topo: IO):
+def deploy_csgoserver(
+    nb_csgo: int, servers: List[Dict[str, str]], ebot_ip: str, image: str, topo: IO
+) -> None:
     """
     Deploy csgo containers over physical servers.
 
@@ -202,8 +204,8 @@ def deploy_csgoserver(nb_csgo: int, servers: List[Dict[str, str]], ebot_ip: str,
     hostname = "csgoinsalan"
     for y in range(0, len(servers)):
         for i in range(
-                int(ceil(nb_csgo / len(servers)) * y),
-                int(ceil(nb_csgo / len(servers)) * (y + 1)),
+            int(ceil(nb_csgo / len(servers)) * y),
+            int(ceil(nb_csgo / len(servers)) * (y + 1)),
         ):
             ip = ipaddress.ip_address(ip + 1)
             tls_config = docker.tls.TLSConfig(
