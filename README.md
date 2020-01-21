@@ -1,17 +1,17 @@
-* INSALAN - dockcsgo
+# INSALAN - dockcsgo
 
 This project is the configuration (and deployment tool) of the InsaLan's CSGO servers. Look and adapt your configuration in the start.py file to your needs. All images need to be made beforehand.
 
-** Usage
+## Usage
 When your configuration is accurate and your images are built, simply use this command : python3 start.py
 
-** Dependencies
+## Dependencies
 - docker
 - ipaddress
 - mysql-connector-python
 you just need to run pip install -r requirements.txt to install all dependencies
 
-** FAQ
+## FAQ
 - server token ? tokens=["youtoken"] in key.py
 - Csgo server outdated ? docker rmi csgoserver && make build
 - python script not working ? either you broke it, or you are not using the venv
