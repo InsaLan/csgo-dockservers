@@ -2,13 +2,15 @@ import re
 import time
 from math import ceil
 from typing import List, Dict, IO
-
+import yaml
 import docker
 import ipaddress
 
 import mysql
-from key import *
+#from key import *
 
+with open("config.yml", "r") as config_file:
+    config = yaml.load(config_file, Loader=yaml.FullLoader)
 
 def register_server_ebot(servers: List[Dict[str, str]], db_ip: str) -> None:
     """
@@ -19,10 +21,7 @@ def register_server_ebot(servers: List[Dict[str, str]], db_ip: str) -> None:
     """
     containers = []
     csgo_containers = []
-    tls_config = docker.tls.TLSConfig(
-        ca_cert="/root/.docker/ca.pem",
-        client_cert=("/root/.docker/cert.pem", "/root/.docker/key.pem"),
-    )
+    tls_config = docker.tls.TLSConfig(config["docker_tls"])
     for s in servers:
         client = docker.DockerClient(
             base_url="tcp://{}:2375".format(s["ip"]), tls=tls_config
@@ -206,24 +205,21 @@ def deploy_csgoserver(nb_csgo: int, servers: List[Dict[str, str]], ebot_ip: str,
                 int(ceil(nb_csgo / len(servers)) * (y + 1)),
         ):
             ip = ipaddress.ip_address(ip + 1)
-            tls_config = docker.tls.TLSConfig(
-                ca_cert="/root/.docker/ca.pem",
-                client_cert=("/root/.docker/cert.pem", "/root/.docker/key.pem"),
-            )
+            tls_config = docker.tls.TLSConfig(config["docker_tls"])
             client = docker.APIClient(
-                base_url="tcp://{}:2375".format(servers[y]["ip"]), tls=tls_config
+                base_url="tcp://{}:2375".format(servers[y]), tls=tls_config
             )
             container = client.create_container(
                 image,
                 detach=True,
                 hostname=hostname,
                 host_config=client.create_host_config(
-                    extra_hosts={hostname: servers[y]["ip"]},
+                    extra_hosts={hostname: servers[y]},
                     restart_policy={"Name": "always"},
                     network_mode="host",
                 ),
                 environment={
-                    "IP": "{}".format(servers[y]["ip"]),
+                    "IP": "{}".format(servers[y]),
                     "CSGO_HOSTNAME": "csgo-server-{}".format(i),
                     "CSGO_PASSWORD": "",
                     "RCON_PASSWORD": "notbanana",

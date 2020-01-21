@@ -1,19 +1,22 @@
 import docker
 import time
+import yaml
 from server_mgmt import *
 
 if __name__ == "__main__":
+    with open("config.yml", "r") as config_file:
+        config = yaml.load(config_file,Loader=yaml.FullLoader)
+
     tls_config = docker.tls.TLSConfig(
-        ca_cert="/root/.docker/ca.pem",
-        client_cert=("/root/.docker/cert.pem", "/root/.docker/key.pem"),
+        config["docker_tls"]
     )
-    nb_csgo = 4
-    image = "csgoserver"
-    client = docker.APIClient("tcp://172.16.1.3:2375", tls=tls_config)
+    nb_csgo = config["csgo"]["nb_instances"]
+    image = config["csgo"]["image_name"]
+    client = docker.APIClient("{}:{}".format(config["docker"]["connection"], config["docker"]["port"]), tls=tls_config)
 
     print("Making networks")
-    servers = [{"ip": "172.16.1.3"}, {"ip": "172.16.1.4"}, {"ip": "172.16.1.5"}]
-    ebot_ip = "172.16.1.3"
+    servers = config["host"]["csgo_servers_ip"]
+    ebot_ip = config["host"]["ebot_ip"]
 
     print("Starting ebot containers")
     with open("topology.csv", "w") as topo:
