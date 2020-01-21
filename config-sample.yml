@@ -1,0 +1,14 @@
+docker_tls:
+  ca_path: "/root/.docker/ca.pem"
+  client_cert_path: "/root/.docker/cert.pem"
+  client_key_path: "/root/.docker/key.pem"
+
+host:
+  ebot_ip: "172.16.1.3"
+  csgo_servers_ip:
+    - "172.16.1.3"
+csgo:
+  tokens:
+    - "string"
+  image_name: "csgoserver"
+  nb_instances: 4
