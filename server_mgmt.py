@@ -6,25 +6,27 @@ import yaml
 import docker
 import ipaddress
 
-import mysql
-#from key import *
+import mysql.connector
+
+# from key import *
 
 with open("config.yml", "r") as config_file:
     config = yaml.load(config_file, Loader=yaml.FullLoader)
 
-def register_server_ebot(servers: List[Dict[str, str]], db_ip: str) -> None:
+
+def register_server_ebot(servers: List[Dict[str, str]], db_ip: str, tls_config: any) -> None:
     """
     Register a game server to the Ebot server, by adding values to its database.
 
     :param servers: A list of servers to add
     :param db_ip: The IP of Ebot's DB
+    :param tls_config: TLS configuration to use
     """
     containers = []
     csgo_containers = []
-    tls_config = docker.tls.TLSConfig(config["docker_tls"])
     for s in servers:
         client = docker.DockerClient(
-            base_url="tcp://{}:2375".format(s["ip"]), tls=tls_config
+            base_url="tcp://{}:2376".format(s), tls=tls_config
         )
         containers.extend(client.containers.list("all"))
         csgo_containers.extend(
@@ -71,15 +73,19 @@ def register_server_ebot(servers: List[Dict[str, str]], db_ip: str) -> None:
         print("insertion failed")
 
 
-def deploy_ebotserver(client, ebot_ip, topo: IO) -> None:
+def deploy_ebotserver(ebot_ip, tls_config: any, topo: IO) -> None:
     """
     Deploy ebot (ebot web and his DB) on a physical server.
 
-    :param client: Number of container to deploy
     :param ebot_ip: IP of the server on which ebot should be deployed
+    :param tls_config: TLS configuration to use
     :param topo: File descriptor to the topology file
 
     """
+
+    client = docker.APIClient(
+        base_url="tcp://{}:2376".format(ebot_ip), tls=tls_config
+    )
 
     db_container = client.create_container(
         "mysql:5.7",
@@ -88,7 +94,7 @@ def deploy_ebotserver(client, ebot_ip, topo: IO) -> None:
             restart_policy={"Name": "always"},
             mounts=[
                 docker.types.Mount(
-                    "/var/lib/mysql", "/opt/docker/ebot/mysql", type="bind"
+                    target="/var/lib/mysql", source="ebot_mysql", type="volume"
                 )
             ],
             network_mode="host",
@@ -112,8 +118,8 @@ def deploy_ebotserver(client, ebot_ip, topo: IO) -> None:
             restart_policy={"Name": "always"},
             extra_hosts={"mysql": ebot_ip, "ebot": ebot_ip},
             mounts=[
-                docker.types.Mount("/ebot/logs", "/opt/docker/ebot/logs", type="bind"),
-                docker.types.Mount("/ebot/demos", "/opt/docker/ebot/demo", type="bind"),
+                docker.types.Mount("/ebot/logs", "ebot_logs", type="volume"),
+                docker.types.Mount("/ebot/demos", "ebot_demo", type="volume"),
             ],
             network_mode="host",
         ),
@@ -145,10 +151,10 @@ def deploy_ebotserver(client, ebot_ip, topo: IO) -> None:
             extra_hosts={"mysql": ebot_ip, "ebot": ebot_ip},
             mounts=[
                 docker.types.Mount(
-                    "/opt/ebot/logs", "/opt/docker/ebot/logs", type="bind"
+                    "/opt/ebot/logs", "ebot_logs", type="volume"
                 ),
                 docker.types.Mount(
-                    "/opt/ebot/demos", "/opt/docker/ebot/demo", type="bind"
+                    "/opt/ebot/demos", "ebot_demo", type="volume"
                 ),
             ],
             network_mode="host",
@@ -183,7 +189,12 @@ def deploy_ebotserver(client, ebot_ip, topo: IO) -> None:
 
 
 def deploy_csgoserver(
-    nb_csgo: int, servers: List[Dict[str, str]], ebot_ip: str, image: str, topo: IO
+        nb_csgo: int,
+        servers: List[Dict[str, str]],
+        ebot_ip: str,
+        image: str,
+        tls_config: any,
+        topo: IO
 ) -> None:
     """
     Deploy csgo containers over physical servers.
@@ -192,6 +203,7 @@ def deploy_csgoserver(
     :param servers: List of physical servers on which the containers will be deployed
     :param ebot_ip: IP address of ebot (#FIXME confirm with original author)
     :param image: Name of the docker image to deploy
+    :param tls_config: TLS configuration to use
     :param topo: File descriptor to the topology file
 
     """
@@ -203,13 +215,12 @@ def deploy_csgoserver(
     hostname = "csgoinsalan"
     for y in range(0, len(servers)):
         for i in range(
-            int(ceil(nb_csgo / len(servers)) * y),
-            int(ceil(nb_csgo / len(servers)) * (y + 1)),
+                int(ceil(nb_csgo / len(servers)) * y),
+                int(ceil(nb_csgo / len(servers)) * (y + 1)),
         ):
             ip = ipaddress.ip_address(ip + 1)
-            tls_config = docker.tls.TLSConfig(config["docker_tls"])
             client = docker.APIClient(
-                base_url="tcp://{}:2375".format(servers[y]), tls=tls_config
+                base_url="tcp://{}:2376".format(servers[y]), tls=tls_config
             )
             container = client.create_container(
                 image,
@@ -225,7 +236,8 @@ def deploy_csgoserver(
                     "CSGO_HOSTNAME": "csgo-server-{}".format(i),
                     "CSGO_PASSWORD": "",
                     "RCON_PASSWORD": "notbanana",
-                    "STEAM_ACCOUNT_TOKEN": tokens[i] if len(tokens) > i else "",
+                    "STEAM_ACCOUNT_TOKEN": config["csgo"]["tokens"][i] if len(config["csgo"]["tokens"]) > i else "",
+                    # FIXME : check before anything instead of failing midway
                     "HOST_PORT": str(hostport + i),
                     "CLIENT_PORT": str(clientport + i),
                     "STV_PORT": str(stvport + i),
