@@ -6,7 +6,7 @@ USER steam
 
 # make sure csgo is updated
 RUN ./steamcmd.sh +login anonymous +force_install_dir csgo/ +app_update 740 validate +quit
-RUN  wget http://www.esport-tools.net/download/CSay-CSGO.zip  -P ctf/
+RUN  wget http://www.esport-tools.net/download/CSay-CSGO.zip  -P cfg/
 RUN cd /cfg && unzip CSay-CSGO.zip && rm CSay-CSGO.zip
 RUN mv /cfg/CSay-CSGO/ /cfg
 
