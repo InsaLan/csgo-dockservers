@@ -21,3 +21,8 @@ RUN apt-get update && apt-get install -y iputils-ping$
 USER steam
 RUN cp /home/steam/csgo/csgo/gamemodes_server.txt.example /home/steam/csgo/csgo/gamemodes_server.txt
 #ADD cfg/server.cfg /home/steam/csgo/csgo/cfg/server_last.cfg
+
+RUN mkdir -p /home/steam/.steam/sdk32/
+RUN ln -s /home/steam/linux32/steamclient.so ~/.steam/sdk32/steamclient.so
+
+CMD ./entrypoint.sh
