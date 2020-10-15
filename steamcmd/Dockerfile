@@ -2,7 +2,7 @@ FROM ubuntu:latest
 MAINTAINER nominoe kervadec <nominoe.kervadec@insa-rennes.fr>
 
 # install required dependencies
-RUN dpkg --add-architecture i386 && apt-get update && apt-get install -y wget lib32gcc1 libstdc++6 libstdc++6:i386 unzip gdb
+RUN dpkg --add-architecture i386 && apt-get update && apt-get install -o APT::Immediate-Configure=0 -y wget lib32gcc1 libstdc++6 libstdc++6:i386 unzip gdb
 
 # install steamcmd
 RUN useradd -ms /bin/bash steam
