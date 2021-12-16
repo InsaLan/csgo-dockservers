@@ -13,7 +13,7 @@ you just need to run pip install -r requirements.txt to install all dependencies
 
 ## Docker daemon configuration
 
-- First, generate TLS certificates for the CA, the server and the client. Follow the tutorial [here](https://docs.docker.com/engine/security/https).
+- First, generate TLS certificates for the CA, the server and the client. Follow the tutorial [here](https://docs.docker.com/engine/security/protect-access/).
  (#FIXME documentation should be more comprehensive)
 
 - Then put the client and CA files (`ca-key.pem ca.pem cert.pem key.pem`) in your client docker configuration folder (in the config file here, it is `/root/.docker/`).
