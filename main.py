@@ -2,6 +2,13 @@ import docker
 import time
 import yaml
 
+# Disables the warnings you get when deploying
+# Because the docker lib forces urllib3 to let you
+# use untrusted certificates.
+# That is fine. That is what we want. Shut up.
+import urllib3
+urllib3.disable_warnings()
+
 from server_mgmt import deploy_ebotserver, deploy_csgoserver, register_server_ebot
 
 if __name__ == "__main__":
