@@ -26,7 +26,7 @@ def register_server_ebot(servers: List[Dict[str, str]], db_ip: str, tls_config: 
     csgo_containers = []
     for s in servers:
         client = docker.DockerClient(
-            base_url="tcp://{}:2376".format(s), tls=tls_config
+            base_url="unix://var/run/docker.sock", tls=tls_config
         )
         containers.extend(client.containers.list("all"))
         csgo_containers.extend(
@@ -84,7 +84,7 @@ def deploy_ebotserver(ebot_ip, tls_config: any, topo: IO) -> None:
     """
 
     client = docker.APIClient(
-        base_url="tcp://{}:2376".format(ebot_ip), tls=tls_config
+        base_url="unix://var/run/docker.sock", tls=tls_config
     )
 
     db_container = client.create_container(
@@ -220,7 +220,7 @@ def deploy_csgoserver(
         ):
             ip = ipaddress.ip_address(ip + 1)
             client = docker.APIClient(
-                base_url="tcp://{}:2376".format(servers[y]), tls=tls_config
+                base_url="unix://var/run/docker.sock", tls=tls_config
             )
             container = client.create_container(
                 image,

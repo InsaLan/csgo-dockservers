@@ -8,3 +8,8 @@ build:
 run:
 	python3 main.py
 
+stop:
+	sh -c "docker rm $(docker stop $(docker ps -a -q --filter name=csgoserver ))"
+	sh -c "docker rm $(docker stop $(docker ps -a -q --filter name=ebot ))"
+	sh -c "docker rm $(docker stop $(docker ps -a -q --filter name=db ))"
+
