@@ -13,3 +13,12 @@ ENV/
 # IDE
 .idea/
 .vscode
+
+# Certs
+certs/
+
+# Database bind
+data/
+
+# Created files
+topology.csv

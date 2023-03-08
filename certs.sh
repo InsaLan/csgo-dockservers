@@ -1,8 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-EBOT_SERVER_DNS="julienlepers.insalan"
-EBOT_SERVER_IP="172.16.1.5"
+EBOT_SERVER_DNS="glados.insalan"
+EBOT_SERVER_IP="172.16.1.10"
 
 mkdir -p certs && cd certs
 mkdir -p ca && cd ca

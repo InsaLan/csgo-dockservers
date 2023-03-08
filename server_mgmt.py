@@ -5,6 +5,7 @@ from typing import List, Dict, IO
 import yaml
 import docker
 import ipaddress
+import os
 
 import mysql.connector
 
@@ -94,7 +95,7 @@ def deploy_ebotserver(ebot_ip, tls_config: any, topo: IO) -> None:
             restart_policy={"Name": "always"},
             mounts=[
                 docker.types.Mount(
-                    target="/var/lib/mysql", source="ebot_mysql", type="volume"
+                    target="/var/lib/mysql", source=os.getcwd()+"/data/ebot_mysql", type="bind" # custom volume path
                 )
             ],
             network_mode="host",
@@ -118,8 +119,8 @@ def deploy_ebotserver(ebot_ip, tls_config: any, topo: IO) -> None:
             restart_policy={"Name": "always"},
             extra_hosts={"mysql": ebot_ip, "ebot": ebot_ip},
             mounts=[
-                docker.types.Mount("/ebot/logs", "ebot_logs", type="volume"),
-                docker.types.Mount("/ebot/demos", "ebot_demo", type="volume"),
+                docker.types.Mount("/ebot/logs", os.getcwd()+"/data/ebot_logs", type="bind"),
+                docker.types.Mount("/ebot/demos", os.getcwd()+"/data/ebot_demo", type="bind"),
             ],
             network_mode="host",
         ),
@@ -151,10 +152,10 @@ def deploy_ebotserver(ebot_ip, tls_config: any, topo: IO) -> None:
             extra_hosts={"mysql": ebot_ip, "ebot": ebot_ip},
             mounts=[
                 docker.types.Mount(
-                    "/opt/ebot/logs", "ebot_logs", type="volume"
+                    "/opt/ebot/logs", os.getcwd()+"/data/ebot_logs", type="bind"
                 ),
                 docker.types.Mount(
-                    "/opt/ebot/demos", "ebot_demo", type="volume"
+                    "/opt/ebot/demos", os.getcwd()+"/data/ebot_demo", type="bind"
                 ),
             ],
             network_mode="host",

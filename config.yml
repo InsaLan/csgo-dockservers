@@ -3,9 +3,9 @@ docker_tls:
         client_cert: ["/root/.docker/cert.pem", "/root/.docker/key.pem"]
 
 host:
-        ebot_ip: "10.0.2.15"
+        ebot_ip: "127.0.0.1"
         csgo_servers_ip:
-                - "10.0.2.15"
+                - "127.0.0.1"
 
 csgo:
         tokens:
