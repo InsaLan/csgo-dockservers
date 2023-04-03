@@ -29,27 +29,27 @@ services:
     links:
       - "mysql:mysql"
     ports:
-      - "12362:80"
+      - "8080:80"
     volumes:
       - ./data/ebot_logs:/opt/ebot/logs
       - ./data/ebot_demo:/opt/ebot/demos
     environment:
-      - EBOT_IP="127.0.0.1"
-      - EBOT_PORT="12360"
-      - EBOT_ADMIN_USER='insalan'
-      - EBOT_ADMIN_PASS='nhurman'
-      - EBOT_ADMIN_MAIL="insalade@ebot"
-      - MYSQL_HOST=mysql
-      - MYSQL_PORT=3306
-      - MYSQL_DB=ebotv3
-      - MYSQL_USER=ebotv3
-      - MYSQL_PASS=ebotv3
-      - DEMO_DOWNLOAD=true
-      - DEFAULT_RULES=esl5on5
-      - TOORNAMENT_ID=""
-      - TOORNAMENT_SECRET=""
-      - TOORNAMENT_PLUGIN_KEY=""
-      - TOORNAMENT_API_KEY=""
+      EBOT_IP: '127.0.0.1'
+      EBOT_PORT: '12360'
+      EBOT_ADMIN_USER: 'insalan'
+      EBOT_ADMIN_PASS: 'nhurman'
+      EBOT_ADMIN_MAIL: 'insalade@ebot'
+      MYSQL_HOST: 'mysql'
+      MYSQL_PORT: '3306'
+      MYSQL_DB: 'ebotv3'
+      MYSQL_USER: 'ebotv3'
+      MYSQL_PASS: 'ebotv3'
+      DEMO_DOWNLOAD: 'true'
+      DEFAULT_RULES: 'esl5on5'
+      TOORNAMENT_ID: ''
+      TOORNAMENT_SECRET: ''
+      TOORNAMENT_PLUGIN_KEY: ''
+      TOORNAMENT_API_KEY: ''
     networks:
       - ebot_network
 
