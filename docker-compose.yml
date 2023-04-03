@@ -7,9 +7,9 @@ services:
     container_name: db_container
     restart: always
     ports:
-      - "8081:8081"
+      - "8081:3306"
     expose:
-      - "8081"
+      - "3306"
     volumes:
       - ./data/ebot_mysql:/var/lib/mysql
     environment:
@@ -40,7 +40,7 @@ services:
       EBOT_ADMIN_PASS: 'nhurman'
       EBOT_ADMIN_MAIL: 'insalade@ebot'
       MYSQL_HOST: 'mysql'
-      MYSQL_PORT: '8081'
+      MYSQL_PORT: '3306'
       MYSQL_DB: 'ebotv3'
       MYSQL_USER: 'ebotv3'
       MYSQL_PASS: 'ebotv3'
