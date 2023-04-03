@@ -18,7 +18,7 @@ ENV/
 certs/
 
 # Database bind
-data/
+data/*
 
 # Created files
 topology.csv
