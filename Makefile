@@ -9,7 +9,7 @@ run:
 	python3 main.py
 
 stop:
-	docker rm $$(docker stop $$(docker ps -a -q --filter name=csgoserver ))
-	docker rm $$(docker stop $$(docker ps -a -q --filter name=ebot ))
-	docker rm $$(docker stop $$(docker ps -a -q --filter name=db ))
+	-docker rm $$(docker stop $$(docker ps -a -q --filter name=csgo-server ))
+	-docker rm $$(docker stop $$(docker ps -a -q --filter name=ebot ))
+	-docker rm $$(docker stop $$(docker ps -a -q --filter name=db ))
 
